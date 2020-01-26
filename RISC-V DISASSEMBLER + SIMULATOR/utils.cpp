@@ -33,13 +33,13 @@ void handle_invalid_instruction(Instruction instruction) {
 }
 
 
-void handle_invalid_read(Address address) {
-  printf("Bad Read. Address: 0x%08x\n", address);
+void handle_invalid_read(address addss) {
+  printf("Bad Read. Address: 0x%08x\n", addss);
   exit(-1);
 }
 
 
-void handle_invalid_write(Address address) {
-  printf("Bad Write. Address: 0x%08x\n", address);
+void handle_invalid_write(address addss) {
+  printf("Bad Write. Address: 0x%08x\n", addss);
   exit(-1);
 }
