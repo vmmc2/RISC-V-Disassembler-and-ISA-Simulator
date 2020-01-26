@@ -155,7 +155,6 @@ int main(){
     //Nao vai ter na versao final esses dois ultimos argumentos nessa funcao abaixo
     for(int i = 0; i < qtd_iteracoes; i++){ 
       execute(&processor, 1);
-      processor.PC += 4;
     }
 
     return 0;
