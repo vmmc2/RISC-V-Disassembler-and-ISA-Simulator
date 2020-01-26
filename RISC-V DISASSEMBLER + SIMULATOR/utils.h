@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "types.h"
+#include "tipos.h"
 #include <bits/stdc++.h>
 
 #define RTYPE_FORMAT "%s\tx%d, x%d, x%d\n"
@@ -19,8 +19,8 @@ int get_branch_offset(Instruction);
 int get_jump_offset(Instruction);
 int get_store_offset(Instruction);
 void handle_invalid_instruction(Instruction);
-void handle_invalid_read(Address);
-void handle_invalid_write(Address);
+void handle_invalid_read(address);
+void handle_invalid_write(address);
 
 
 #endif
