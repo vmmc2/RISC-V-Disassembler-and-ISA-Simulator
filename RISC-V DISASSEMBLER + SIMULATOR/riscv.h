@@ -1,7 +1,7 @@
 #ifndef RISCV_H
 #define RISCV_H
 
-#include <types.h>
+#include "tipos.h"
 
 //Funcao referente a Parte 1: Decodificar uma instrucao
 void decode_instruction(Instruction i);
