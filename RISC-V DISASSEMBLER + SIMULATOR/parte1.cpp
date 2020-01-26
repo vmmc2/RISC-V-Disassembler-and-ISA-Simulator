@@ -92,7 +92,7 @@ void write_rtype(Instruction instruction){
       name = "sll";
       break;
     case 0x2: //slt
-      name = "slt"
+      name = "slt";
       break;
     case 0x4: //xor
       name = "xor";
@@ -135,11 +135,7 @@ void write_itype_except_load(Instruction instruction){
     case 0x2: //slti - ok
       print_itype_except_load("slti", instruction, bitSigner(instruction.itype.imm, 12));
       break;
-    case 0x3: //sltiu - ESSE TEM QUE VER...
-      //OBSSSSSS
-      //
-      //
-      //
+    case 0x3: //sltiu - ok
       print_itype_except_load("sltiu", instruction, bitSigner(instruction.itype.imm, 12));
       break;
     case 0x4: //xori - ok
