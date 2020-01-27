@@ -14,3 +14,4 @@ void store(ubyte *memory, address endereco, Alignment alignment, uword value, in
 uword load(ubyte *memory, address endereco, Alignment alignment, int);
 
 #endif
+//
