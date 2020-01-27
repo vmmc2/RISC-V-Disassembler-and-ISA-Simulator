@@ -104,8 +104,8 @@ typedef union{
     //acessando instrucao do tipo UJ: instruction.ujtype.(opcode|rd|imm)
     struct{
         unsigned int opcode : 7;
-        unsigned int rd : 5;
-        unsigned int imm : 20;
+	    unsigned int rd : 5;
+	    unsigned int imm : 20;
     } ujtype;
 
     //acessando instrucao do tipo S: instruction.stype.(opcode|imm5|funct3|rs1|rs2|imm7)
