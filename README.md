@@ -1,5 +1,5 @@
 # RISC-V-Disassembler-and-ISA-Simulator
-![[RISC-V](https://http://riscv.org/)](outros/image8.png)
+![[RISC-V](https://http://riscv.org/)](image8.png)
 
 # Introduction
 This project is a disassembler and ISA simulator for the RISC-V architecture, but just the RV32I extension. It receives a file called "entrada.txt" that contains the instructions in hexadecimal format. The program then will execute these instructions, generating the corresponding code in RISC-V assembly and will display it in the terminal. It will also display the status of
