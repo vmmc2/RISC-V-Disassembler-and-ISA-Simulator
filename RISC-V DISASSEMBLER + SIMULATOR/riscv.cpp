@@ -44,19 +44,20 @@ void execute(Processor *processor, int print){
     //Pra garantir que o registrador x0 seja hardwired para o valor 0, eu fico 
     //resetando ele.
     processor->R[0] = 0;
-    //Por ultimo a gente tem que printar o estado dos registradores apos cada instrucao
-    for(int i = 0; i < 8; i++){
-        for(int j = 0; j < 4; j++){
-            printf("r%2d = %08x ", i*4 + j, processor->R[i*4 + j]);
-        }
-        puts("");
-    }
-    printf("\n");
-
-    
+    return;
 }
 
-
+void print_state(Processor *processor){
+  //Por ultimo a gente tem que printar o estado dos registradores apos cada instrucao
+  for(int i = 0; i < 8; i++){
+    for(int j = 0; j < 4; j++){
+      printf("r%2d = %08x ", i*4 + j, processor->R[i*4 + j]);
+    }
+    puts("");
+  }
+  printf("\n");
+  return;
+}
 
 //Funcao para Carregar o Programa na Memoria...
 //PRIMEIRO: A gente carrega o programa na memoria para so em seguida comecar a
@@ -87,6 +88,9 @@ int load_program(uint8_t *mem, size_t memsize, int startaddr, const char *filena
     //32 bits.
     ++iterations;
     instruction = (int32_t) strtol(line, NULL, 16);
+    Instruction inst;
+    inst.bits = instruction;
+    decode_instruction(inst);
     //Lembre-se que a memoria ta enderecada por byte. Cada indice = 1 byte(8 bits)
     //Como uma instrucao tem 32 bits (4 bytes), temos que quebrar ela em quatro 
     //partes e armazena-las na memoria byte a byte, lembrando que RISC-V eh Little
@@ -108,7 +112,7 @@ int load_program(uint8_t *mem, size_t memsize, int startaddr, const char *filena
     offset += 4; //Garante que eu consiga pular de 4 em 4 bytes apos cada instrucao
     //escrita na memoria...
   }
-  
+  printf("\n\n\n");
   fclose(file);
   fclose(filesaida);
   return iterations;
@@ -155,7 +159,7 @@ int main(){
     //Nao vai ter na versao final esses dois ultimos argumentos nessa funcao abaixo
     for(int i = 0; i < qtd_iteracoes; i++){ 
       execute(&processor, 1);
+      print_state(&processor);
     }
-
     return 0;
 }
