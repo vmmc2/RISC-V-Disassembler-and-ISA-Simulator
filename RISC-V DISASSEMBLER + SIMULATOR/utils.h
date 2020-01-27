@@ -6,7 +6,6 @@
 
 #define RTYPE_FORMAT "%s\tx%d, x%d, x%d\n"
 #define ITYPE_FORMAT "%s\tx%d, x%d, %d\n"
-#define JALR_FORMAT "jalr\tx%d, x%d, %d\n"
 #define MEM_FORMAT "%s\tx%d, %d(x%d)\n"
 #define AUIPC_FORMAT "auipc\tx%d, %d\n"
 #define LUI_FORMAT "lui\tx%d, %d\n"
