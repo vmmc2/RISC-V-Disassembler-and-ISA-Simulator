@@ -10,7 +10,6 @@
 void execute_rtype(Instruction, Processor *);
 void execute_itype_except_load(Instruction, Processor *);
 void execute_branch(Instruction, Processor *);
-void execute_jalr(Instruction, Processor *);
 void execute_jal(Instruction, Processor *);
 void execute_load(Instruction, Processor *, ubyte *);
 void execute_store(Instruction, Processor *, ubyte *);
@@ -27,11 +26,8 @@ void execute_instruction(Instruction instruction,Processor *processor, ubyte *me
     case 0x13:
       execute_itype_except_load(instruction, processor); //ADDI, SLLI, SLTI, XORI, SRLI, SRAI, ORI, ANDI
       break;
-    case: 0x17//AUIPC
-      execute_auipc(instruction, processor, memory);
-      break;
-    case 0x67: //JALR
-      execute_jalr(instruction, processor);
+    case 0x17://AUIPC
+      execute_auipc(instruction, processor);
       break;
     case 0x33: //R-TYPE: ADD, SUB, SLL, SLT, XOR, SRL, SRA, OR, AND
       execute_rtype(instruction, processor);
@@ -49,20 +45,21 @@ void execute_instruction(Instruction instruction,Processor *processor, ubyte *me
       execute_lui(instruction, processor);
       break;
     case 0x73: //ECALL
-      execute_ecall(instruction, memory);
+      execute_ecall(processor, memory);
       break;
     default: // undefined opcode
       handle_invalid_instruction(instruction);
       exit(-1);
       break;
   }
+  return;
 }
 
 
 void execute_rtype(Instruction instruction, Processor *processor) {
   switch(instruction.rtype.funct3) {
     case 0x0: //add - sub - OK
-      if(instruction.rtype.func7 == 0x00){ //add
+      if(instruction.rtype.funct7 == 0x00){ //add
         //No caso do add eu faco a adicao considerando rs1 e rs2 como numeros
         //com sinal, entretanto o resultado que eu jogo no rd eh sem sinal..
         processor->R[instruction.rtype.rd] = (uword)((word)processor->R[instruction.rtype.rs1] + (word)processor->R[instruction.rtype.rs2]);
@@ -109,10 +106,12 @@ void execute_rtype(Instruction instruction, Processor *processor) {
       break;
   }
   processor->PC += 4; //incrementando PC para a proxima instrucao.
+  return;
 }
 
 
 void execute_itype_except_load(Instruction instruction, Processor *processor) {
+  int shiftoperator;
   switch(instruction.itype.funct3) { //damos switch no campo funct3
     case 0x0: //addi - OK
       //DETALHE DE IMPLEMENTACAO: QUANDO A GENTE FOR PEGAR UM VALOR DE UM REG SOURCE (RS1, RS2) A GENTE TEM QUE
@@ -146,7 +145,7 @@ void execute_itype_except_load(Instruction instruction, Processor *processor) {
       processor->R[instruction.itype.rd] = processor->R[instruction.itype.rs1] << bitSigner(instruction.itype.imm, 12);
       break;
     case 0x5: //srli - srai - 
-      int shiftoperator = (instruction.itype.imm & 0x01f);
+      shiftoperator = (instruction.itype.imm & 0x01f);
       if((instruction.itype.imm & 0xfe0) == 0x00){ //srli
         processor->R[instruction.itype.rd] = processor->R[instruction.itype.rs1] >> shiftoperator;
       }else{ //srai
@@ -154,10 +153,11 @@ void execute_itype_except_load(Instruction instruction, Processor *processor) {
       }
       break;
     default:
-        handle_invalid_instruction(instruction);
-        break;
+      handle_invalid_instruction(instruction);
+      break;
   }
   processor->PC += 4; //incrementando PC para a proxima instrucao.
+  return;
 }
 
 
@@ -168,7 +168,7 @@ void execute_ecall(Processor *p, ubyte *memory) {
   switch(p->R[10]) {
     case 1:
       printf("x11 = %d\n", p->R[11]);
-      p->pc += 4;
+      p->PC += 4;
       break;
     case 10:
       printf("Exiting/End Of Code!\n");
@@ -179,74 +179,139 @@ void execute_ecall(Processor *p, ubyte *memory) {
       exit(-1);
       break;
   }
+  return;
 }
 
 
 void execute_branch(Instruction instruction, Processor *processor) {
+  //O OFFSET TODIN DO BRANCH TEM 12 BITS. TEM QUE DAR SIGN EXTEND NELE.
   /* Remember that the immediate portion of branches
      is counting half-words, so make sure to account for that. */
-  switch(0) { // What do we switch on?
-    /* YOUR CODE HERE */
+  switch(instruction.sbtype.funct3) { 
+    case 0x0: //beq
+      if(processor->R[instruction.sbtype.rs1] == processor->R[instruction.sbtype.rs2]){
+        processor->PC += (hword)get_branch_offset(instruction);
+      }else{
+        processor->PC += 4;
+      }
+      break;
+    case 0x1: //bne
+      if(processor->R[instruction.sbtype.rs1] != processor->R[instruction.sbtype.rs2]){
+        processor->PC += (hword)get_branch_offset(instruction);
+      }else{
+        processor->PC += 4;
+      }
+      break;
+    case 0x4: //blt -- TEM QUE VER COMO VOU FAZER COM ISSO AQUI
+      if((word)processor->R[instruction.sbtype.rs1] < (word)processor->R[instruction.sbtype.rs2]){
+        processor->PC += (hword)get_branch_offset(instruction);
+      }else{
+        processor->PC += 4;
+      }
+      break;
+    case 0x5: //bge -- TEM QUE VER COMO VOU FAZER COM ISSO AQUI
+      if((word)processor->R[instruction.sbtype.rs1] >= (word)processor->R[instruction.sbtype.rs2]){
+        processor->PC += (hword)get_branch_offset(instruction);
+      }else{
+        processor->PC += 4;
+      }
+      break;
+    case 0x6: //bltu -- TEM QUE VER COMO VOU FAZER COM ISSO AQUI
+      if((uword)processor->R[instruction.sbtype.rs1] < (uword)processor->R[instruction.sbtype.rs2]){
+        processor->PC += (hword)get_branch_offset(instruction);
+      }else{
+        processor->PC += 4;
+      }
+      break;
+    case 0x7: //bgeu -- TEM QUE VER COMO VOU FAZER COM ISSO AQUI
+      if((uword)processor->R[instruction.sbtype.rs1] >= (uword)processor->R[instruction.sbtype.rs2]){
+        processor->PC += (hword)get_branch_offset(instruction);
+      }else{
+        processor->PC += 4;
+      }
+      break;
     default:
       handle_invalid_instruction(instruction);
       exit(-1);
       break;
   }
+  return;
 }
 
 
 void execute_load(Instruction instruction, Processor *processor, ubyte *memory) {
   switch(instruction.itype.funct3) { //Manda o switch no campo funct3
-    case 0x0: //lb
-      
+    case 0x0: //lb - bitsigner(extensao com sinal)
+      processor->R[instruction.itype.rd] = bitSigner(load(memory, (word)processor->R[instruction.itype.rs1] + (word)bitSigner(instruction.itype.imm, 12) , LENGTH_BYTE, 0), 8);
       break;
-    case 0x1: //lh
-      
+    case 0x1: //lh - bitsigner(extensao com sinal)
+      processor->R[instruction.itype.rd] = bitSigner(load(memory, (word)processor->R[instruction.itype.rs1] + (word)bitSigner(instruction.itype.imm, 12) , LENGTH_HALF_WORD, 0), 16);
       break;
     case 0x2: //lw
-
+      processor->R[instruction.itype.rd] = load(memory,(word)processor->R[instruction.itype.rs1] + (word)bitSigner(instruction.itype.imm, 12) , LENGTH_WORD, 0);
       break;
     case 0x4: //lbu -- TEM QUE VER COMO VOU FAZER COM ISSO AQUI
-
+      processor->R[instruction.itype.rd] = (uword)(load(memory, (word)processor->R[instruction.itype.rs1] + (word)bitSigner(instruction.itype.imm, 12), LENGTH_BYTE, 0)) | 0x00000000;
       break;
     case 0x5: //lhu -- TEM QUE VER COMO VOU FAZER COM ISSO AQUI
-      
+      processor->R[instruction.itype.rd] = (uword)(load(memory, (word)processor->R[instruction.itype.rs1] + (word)bitSigner(instruction.itype.imm, 12), LENGTH_HALF_WORD, 0)) | 0x00000000;
       break;
     default:
       handle_invalid_instruction(instruction);
       break;
   }
+  processor->PC += 4;
+  return;
 }
 
 
 void execute_store(Instruction instruction, Processor *processor, ubyte *memory) {
-  switch(0) { // What do we switch on?
-    /* YOUR CODE HERE */
+  address end;
+  uword data;
+  switch(instruction.stype.funct3) {
+    case 0x0: //sb
+      end = (word)processor->R[instruction.stype.rs1] + (word)get_store_offset(instruction);
+      data = processor->R[instruction.stype.rs2];
+      store(memory, end, LENGTH_BYTE, data, 0);
+      break;
+    case 0x1: //sh
+      end = (word)processor->R[instruction.stype.rs1] + (word)get_store_offset(instruction);
+      data = processor->R[instruction.stype.rs2];
+      store(memory, end, LENGTH_HALF_WORD, data, 0);;
+      break;
+    case 0x2: //sw
+      end = (word)processor->R[instruction.stype.rs1] + (word)get_store_offset(instruction);
+      data = processor->R[instruction.stype.rs2];
+      store(memory, end, LENGTH_WORD, data, 0);
+      break;
     default:
       handle_invalid_instruction(instruction);
       exit(-1);
       break;
   }
-}
-
-
-void execute_jalr(Instruction instruction, Processor *processor) {
-  /* YOUR CODE HERE */
+  processor->PC += 4;
+  return;
 }
 
 
 void execute_jal(Instruction instruction, Processor *processor) {
-  /* YOUR CODE HERE */
+  processor->R[instruction.ujtype.rd] = processor->PC + 4;
+  processor->PC = processor->PC + (word)get_jump_offset(instruction);
+  return;
 }
 
 
 void execute_auipc(Instruction instruction, Processor *processor) {
-  /* YOUR CODE HERE */
+  processor->R[instruction.utype.rd] = processor->PC + ((instruction.utype.imm) << 12);
+  processor->PC += 4;
+  return;
 }
 
 
 void execute_lui(Instruction instruction, Processor *processor) {
-  /* YOUR CODE HERE */
+  processor->R[instruction.utype.rd] = ((instruction.utype.imm) << 12);
+  processor->PC += 4;
+  return;
 }
 
 
@@ -276,18 +341,19 @@ void store(ubyte *memory, address addss, Alignment alignment, uword value, int c
       memory[addss] = (ubyte)(value & 0x000000ff);
       break;
     case LENGTH_HALF_WORD: //tem que carregar 2 bytes na memoria
-      memory[addss] = (ubyte)(value & 0x000000ff)
+      memory[addss] = (ubyte)(value & 0x000000ff);
       memory[addss + 1] = (ubyte)((value & 0x0000ff00) >> 8);
       break;
     case LENGTH_WORD: //tem que carregar 4 bytes na memoria
-      memory[addss] = (ubyte)(value & 0x000000ff)
-      memory[addss + 1] = (ubyte)((value & 0x0000ff00) >> 8)
-      memory[addss + 2] = (ubyte)((value & 0x00ff0000) >> 16)
-      memory[addss + 3] = (ubyte)((value & 0xff000000) >> 24)
+      memory[addss] = (ubyte)(value & 0x000000ff);
+      memory[addss + 1] = (ubyte)((value & 0x0000ff00) >> 8);
+      memory[addss + 2] = (ubyte)((value & 0x00ff0000) >> 16);
+      memory[addss + 3] = (ubyte)((value & 0xff000000) >> 24);
       break;
     default:
       break;
   }
+  return;
 }
 
 //FUNCAO QUE VAI SER USADA PARA RETORNAR UMA INSTRUCAO DA MEMORIA
