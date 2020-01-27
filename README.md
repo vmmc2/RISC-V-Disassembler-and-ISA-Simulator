@@ -1,11 +1,11 @@
 # RISC-V-Disassembler-and-ISA-Simulator
 ![[RISC-V](https://http://riscv.org/)](image8.png)
 
-# Introduction
+# Introduction:
 This project is a disassembler and ISA simulator for the RISC-V architecture, but just the RV32I extension. It receives a file called "entrada.txt" that contains the instructions in hexadecimal format. The program then will execute these instructions, generating the corresponding code in RISC-V assembly and will display it in the terminal. It will also display the status of
 every single register (x0 - x31, including PC).
 
-# Compiling
+# Compiling and Running:
 First of all, make sure you are in the "RISC-V DISASSEMBLER + SIMULATOR" folder.
 Then, you put the hexadecimal instructions that you want to execute/simulate in the "entrada.txt" file.
 After that, you just have to write in the terminal the following commands:
@@ -13,7 +13,7 @@ After that, you just have to write in the terminal the following commands:
 * g++ riscv.cpp -o executable_name
 * ./executable_name
 
-# Status
+# Status:
 The following instructions from RV32I extension are supported:
 #### R-Type
 - [x] add
