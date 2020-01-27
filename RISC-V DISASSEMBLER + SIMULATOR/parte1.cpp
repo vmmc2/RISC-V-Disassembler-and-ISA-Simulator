@@ -11,6 +11,7 @@ void print_itype_except_load(char *, Instruction, int);
 void print_load(char *, Instruction);
 void print_store(char *, Instruction);
 void print_branch(char *, Instruction);
+void print_jal(Instruction);
 //2) FUNCOES QUE VAO EXECUTAR AS INSTRUCOES DE FATO NO ROLE.
 void write_rtype(Instruction); //ok
 void write_itype_except_load(Instruction); //OK
@@ -19,15 +20,9 @@ void write_store(Instruction); //ok
 void write_branch(Instruction); //ok
 void write_auipc(Instruction); //ok
 void write_lui(Instruction); //ok
-void write_jalr(Instruction); //OK
 void write_jal(Instruction); //ok
 void write_ecall(Instruction); //ok
 
-
-//INSTRUCOES PRESENTES MAS TEM QUE PENSAR COMO IMPLEMENTAR...:
-/*
-LBU, LHU, SLTIU, SLTU, BLTU, BGEU
-*/
 
 
 //DESCRICAO DE TODAS AS FUNCOES DE FORMA DETALHADA//
@@ -46,11 +41,8 @@ void decode_instruction(Instruction instruction) {
     case 0x13:
       write_itype_except_load(instruction); //ADDI, SLLI, SLTI, XORI, SRLI, SRAI, ORI, ANDI
       break;
-    case: 0x17//AUIPC
+    case 0x17: //AUIPC
       write_auipc(instruction);
-      break;
-    case 0x67: //JALR
-      write_jalr(instruction);
       break;
     case 0x33: //R-TYPE: ADD, SUB, SLL, SLT, XOR, SRL, SRA, OR, AND
       write_rtype(instruction);
@@ -59,7 +51,7 @@ void decode_instruction(Instruction instruction) {
       write_branch(instruction);
       break;
     case 0x6f: // UJ-TYPE: JAL
-      write_jal(instruction);
+      print_jal(instruction);
       break;
     case 0x23: //S-TYPE: SB, SH, SW
       write_store(instruction);
@@ -82,7 +74,7 @@ void write_rtype(Instruction instruction){
   char *name;
   switch(instruction.rtype.funct3){
     case 0x0: //add - sub
-      if(instruction.rtype.func7 == 0x00){
+      if(instruction.rtype.funct7 == 0x00){
         name = "add";
       }else{
         name = "sub";
@@ -240,26 +232,14 @@ void write_branch(Instruction instruction){ //ok
 /* For the writes, probably a good idea to take a look at utils.h */
 
 void write_auipc(Instruction instruction) {
-  /* YOUR CODE HERE */
-  /*
-  */
+  printf(AUIPC_FORMAT, instruction.utype.rd, instruction.utype.imm);
+  return;
 }
 
 
 void write_lui(Instruction instruction) {
-  printf(LUI_FORMAT, instruction.utype.rd, (sWord)instruction.utype.imm);
-}
-
-
-void write_jalr(Instruction instruction) {
-  /* YOUR CODE HERE */
-  /*
-  */
-}
-
-
-void write_jal(Instruction instruction) {
-  printf(JAL_FORMAT, instruction.ujtype.rd, get_jump_offset(instruction));
+  printf(LUI_FORMAT, instruction.utype.rd, (word)instruction.utype.imm);
+  return;
 }
 
 
@@ -275,11 +255,18 @@ void write_ecall(Instruction instruction) {
 
 void print_rtype(char *name, Instruction instruction) {
   printf(RTYPE_FORMAT, name, instruction.rtype.rd, instruction.rtype.rs1, instruction.rtype.rs2);
+  return;
+}
+
+void print_jal(Instruction instruction) {
+	printf(JAL_FORMAT, instruction.ujtype.rd, get_jump_offset(instruction));
+  return;
 }
 
 
 void print_itype_except_load(char *name, Instruction instruction, int imm) {
   printf(ITYPE_FORMAT, name, instruction.itype.rd, instruction.itype.rs1, (word) imm);
+  return;
 }
 
 
@@ -288,6 +275,7 @@ void print_load(char *name, Instruction instruction) {
   // lw x1, 0(x4)
   // lw x5, 24(x8)
   printf(MEM_FORMAT, name, instruction.itype.rd,(word) bitSigner(instruction.itype.imm, 12), instruction.itype.rs1);
+  return;
 }
 
 
@@ -296,9 +284,11 @@ void print_store(char *name, Instruction instruction) {
   //sw x3, 12(x4)
   //sb x4, 34(x8)
   printf(MEM_FORMAT, name, instruction.stype.rs2, get_store_offset(instruction), instruction.stype.rs1);
+  return;
 }
 
 
 void print_branch(char *name, Instruction instruction) {
   printf(BRANCH_FORMAT, name, instruction.sbtype.rs1, instruction.sbtype.rs2, get_branch_offset(instruction));
+  return;
 }
